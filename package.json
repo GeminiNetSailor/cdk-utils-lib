@@ -1,5 +1,5 @@
 {
-  "name": "cdk-utils",
+  "name": "cdk-utils-lib",
   "version": "1.0.0",
   "description": "Gemini CDK utils",
   "main": "index.js",
