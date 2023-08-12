@@ -53,7 +53,7 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
           cdk.aws_lambda.Runtime.NODEJS_16_X,
           cdk.aws_lambda.Runtime.NODEJS_18_X
         ],
-        code: cdk.aws_lambda.Code.fromAsset(path.join(__dirname, '../', 'dist/layers', layer.path)),
+        code: cdk.aws_lambda.Code.fromAsset(path.join(process.cwd(), 'dist/layers', layer.path)),
       });
       layers.push(commonLayer);
     });
@@ -68,7 +68,7 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
         restApiId: restApi.restApiId,
         rootResourceId: restApi.restApiRootResourceId,
         lambdaName: r.name,
-        lambdaCodeDir: path.join(__dirname, '../', 'dist/routes', r.path),
+        lambdaCodeDir: path.join(process.cwd(), 'dist/routes', r.path),
         layers
       });
       methods = [
