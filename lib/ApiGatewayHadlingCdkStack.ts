@@ -1,0 +1,102 @@
+import * as path from "path";
+import * as cdk from "aws-cdk-lib";
+import { Construct } from "constructs";
+
+// Nested Stacks
+import DeployStack from "./DeployStack";
+import ApiCrudRouteStack from './ApiRouteStack';
+
+interface RestAPIRootStackProps extends cdk.StackProps {
+  readonly apiGatewaParameter: string;
+  readonly branch: string;
+}
+
+// TODO: SEPARATE LAYERS INTO HIS HOWN STACK
+
+class ApiGatewayHadlingCdkStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props: RestAPIRootStackProps) {
+    super(scope, `${id}-api-gateway-handing-cdk-stack`, props);
+
+    const existingApiGatewayConfig = cdk.aws_ssm.StringParameter.valueFromLookup(this, props.apiGatewaParameter);
+    console.log(existingApiGatewayConfig);
+    if (existingApiGatewayConfig.includes('dummy-value-for-') || existingApiGatewayConfig === '') return;
+
+    var layersConfig: { name: string, path: string }[] = scope.node.tryGetContext('layers');
+    var routesConfig: { name: string, path: string }[] = scope.node.tryGetContext('routes');
+
+    var parsedGatewayConfig:
+      { apiGatewayRestApiId: string; apiGatewayRootResourceId: string; }
+      = JSON.parse(existingApiGatewayConfig);
+
+    new cdk.CfnOutput(this, 'Using existing Api Gateway', { value: JSON.stringify(parsedGatewayConfig) });
+
+    var apiGatewayIds: { restApiId: string, rootResourceId: string } = {
+      restApiId: parsedGatewayConfig.apiGatewayRestApiId,
+      rootResourceId: parsedGatewayConfig.apiGatewayRootResourceId
+    };
+
+    // ===================================
+    // API Gateway
+    // ===================================
+    const restApi = cdk.aws_apigateway.RestApi.fromRestApiAttributes(this, `${id}-restapi`, {
+      ...apiGatewayIds
+    });
+
+    // ===================================
+    // LAMBDA LAYERS
+    // ===================================
+    var layers: cdk.aws_lambda.LayerVersion[] = [];
+
+    layersConfig.forEach(layer => {
+      const commonLayer = new cdk.aws_lambda.LayerVersion(this, `${layer.name}-layer`, {
+        compatibleRuntimes: [
+          cdk.aws_lambda.Runtime.NODEJS_16_X,
+          cdk.aws_lambda.Runtime.NODEJS_18_X
+        ],
+        code: cdk.aws_lambda.Code.fromAsset(path.join(__dirname, '../', 'dist/layers', layer.path)),
+      });
+      layers.push(commonLayer);
+    });
+
+    // ===================================
+    // API REST ROUTES + Lambda Functions
+    // ===================================
+    var methods: cdk.aws_apigateway.Method[] = [];
+
+    routesConfig.forEach(r => {
+      const registrosApiRouteStack = new ApiCrudRouteStack(this, `restapi-${r.name}`, {
+        restApiId: restApi.restApiId,
+        rootResourceId: restApi.restApiRootResourceId,
+        lambdaName: r.name,
+        lambdaCodeDir: path.join(__dirname, '../', 'dist/routes', r.path),
+        layers
+      });
+      methods = [
+        ...methods,
+        ...registrosApiRouteStack.methods
+      ];
+    });
+
+    // ===================================
+    // Deployments
+    // ===================================
+    new DeployStack(this, id, {
+      branch: props.branch,
+      restApiId: restApi.restApiId,
+      methods,
+    });
+
+    // ===================================
+    // Outputs
+    // ===================================
+    new cdk.CfnOutput(this, "Stack Region", {
+      value: this.region
+    });
+
+    new cdk.CfnOutput(this, 'URL', {
+      value: `https://${restApi.restApiId}.execute-api.${this.region}.amazonaws.com/prod/`,
+    });
+
+  }
+};
+export default ApiGatewayHadlingCdkStack;

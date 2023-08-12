@@ -1,0 +1,19 @@
+{
+  "name": "cdk-utils",
+  "version": "1.0.0",
+  "description": "Gemini CDK utils",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^20.4.10",
+    "aws-cdk-lib": "^2.91.0",
+    "constructs": "^10.2.69"
+  }
+}
