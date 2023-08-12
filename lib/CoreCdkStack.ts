@@ -32,6 +32,7 @@ export class CoreCdkStack extends cdk.Stack {
         },
         input: this.getInput(props.repository_provider, props.repository_name, props.branch),
         installCommands: [
+          'npm install git+ssh://git@github.com/GeminiNetSailor/cdk-utils-lib.git',
           'npm install -g aws-cdk'
         ],
         commands: [
