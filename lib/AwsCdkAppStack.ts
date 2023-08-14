@@ -41,7 +41,7 @@ export class CoreAwsServicesStack extends cdk.Stack {
         },
         input: this.getInput(props.repository_provider, props.repository_name, props.branch),
         installCommands: [
-          'npm install git+ssh://git@github.com/GeminiNetSailor/cdk-utils-lib.git',
+          'git submodule update --init',
           'npm install -g aws-cdk'
         ],
         commands: [
@@ -86,9 +86,11 @@ export class CoreAwsServicesStack extends cdk.Stack {
         const codecommitRepo = cdk.aws_codecommit.Repository.fromRepositoryName(
           this,
           'AppRepository',
-          repoName
+          repoName,
         );
-        return CodePipelineSource.codeCommit(codecommitRepo, branch);
+        return CodePipelineSource.codeCommit(codecommitRepo, branch, {
+          codeBuildCloneOutput: true
+        });
       default:
         throw new Error("Missing CDKAPP_REPOSITORY env Variable!");
     };
