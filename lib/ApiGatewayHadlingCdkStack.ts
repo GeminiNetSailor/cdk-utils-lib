@@ -23,6 +23,9 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
     var layersConfig: { name: string, path: string }[] = scope.node.tryGetContext('layers');
     var apiConfig: { urlPath: string, handlerName: string, module: { name: string, path: string } }[] = scope.node.tryGetContext('api');
 
+    console.log(layersConfig);
+    console.log(apiConfig);
+
     var parsedGatewayConfig:
       { apiGatewayRestApiId: string; apiGatewayRootResourceId: string; }
       = JSON.parse(existingApiGatewayConfig);
