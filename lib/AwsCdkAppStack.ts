@@ -52,26 +52,8 @@ export class CoreAwsServicesStack extends cdk.Stack {
       })
     });
 
-    // const parameterName = `/${id}`;
-    // var stringValue = cdk.aws_ssm.StringParameter.valueFromLookup(this, parameterName);
-    // if (!stringValue.includes('dummy-value-for-') && stringValue !== '') {
-    //   var value = JSON.parse(stringValue);
-
-    //   if (value['branches'][props.branch] === undefined)
-    //     value = {
-    //       branches: { ...value['branches'], [props.branch]:  }
-    //     }
-
-    //   new cdk.aws_ssm.StringParameter(this, `configurationParams`, {
-    //     parameterName,
-    //     description: `${id} configuration`,
-    //     stringValue: JSON.stringify(value),
-    //   });
-    // }
-
     pipeline.addStage(new AppPipeline(this, `${id}-${props.branch}`, { branch: props.branch }));
-    // const pipelineAppProd = pipeline.addStage(new PipelineAppProd(this, 'prod'));
-    // pipelineAppProd.addPre(new ManualApprovalStep('approval'));
+
   }
 
   private getInput(provider: TRepositoryProvider, repoName: string, branch: string): cdk.pipelines.CodePipelineSource {

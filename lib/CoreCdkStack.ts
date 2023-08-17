@@ -32,6 +32,7 @@ export class CoreCdkStack extends cdk.Stack {
         },
         input: this.getInput(props.repository_provider, props.repository_name, props.branch),
         installCommands: [
+          "git submodule update --init",
           'npm install -g aws-cdk'
         ],
         commands: [
