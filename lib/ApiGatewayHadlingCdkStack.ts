@@ -18,11 +18,10 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
     super(scope, `${id}-api-gateway-handing-cdk-stack`, props);
 
     const existingApiGatewayConfig = cdk.aws_ssm.StringParameter.valueFromLookup(this, props.apiGatewaParameter);
-    console.log(existingApiGatewayConfig);
     if (existingApiGatewayConfig.includes('dummy-value-for-') || existingApiGatewayConfig === '') return;
 
     var layersConfig: { name: string, path: string }[] = scope.node.tryGetContext('layers');
-    var routesConfig: { name: string, path: string }[] = scope.node.tryGetContext('routes');
+    var apiConfig: { urlPath: string, handlerName: string, module: { name: string, path: string } }[] = scope.node.tryGetContext('api');
 
     var parsedGatewayConfig:
       { apiGatewayRestApiId: string; apiGatewayRootResourceId: string; }
@@ -48,14 +47,13 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
     var layers: cdk.aws_lambda.LayerVersion[] = [];
 
     layersConfig.forEach(layer => {
-      const commonLayer = new cdk.aws_lambda.LayerVersion(this, `${layer.name}-layer`, {
+      layers.push(new cdk.aws_lambda.LayerVersion(this, `${layer.name}-layer`, {
         compatibleRuntimes: [
           cdk.aws_lambda.Runtime.NODEJS_16_X,
           cdk.aws_lambda.Runtime.NODEJS_18_X
         ],
         code: cdk.aws_lambda.Code.fromAsset(path.join(process.cwd(), 'dist/layers', layer.path)),
-      });
-      layers.push(commonLayer);
+      }));
     });
 
     // ===================================
@@ -63,18 +61,15 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
     // ===================================
     var methods: cdk.aws_apigateway.Method[] = [];
 
-    routesConfig.forEach(r => {
-      const registrosApiRouteStack = new ApiCrudRouteStack(this, `restapi-${r.name}`, {
+    apiConfig.forEach(a => {
+      methods.push(...new ApiCrudRouteStack(this, `restapi-${a.module.name}`, {
         restApiId: restApi.restApiId,
         rootResourceId: restApi.restApiRootResourceId,
-        lambdaName: r.name,
-        lambdaCodeDir: path.join(process.cwd(), 'dist/routes', r.path),
+        lambdaName: a.module.name,
+        handler: a.handlerName,
+        lambdaCodeDir: path.join(process.cwd(), 'dist', a.module.path),
         layers
-      });
-      methods = [
-        ...methods,
-        ...registrosApiRouteStack.methods
-      ];
+      }).methods);
     });
 
     // ===================================

@@ -15,7 +15,7 @@ interface ApiCrudRouteStackProps extends NestedStackProps {
 
   lambdaName: string;
   lambdaCodeDir: string;
-
+  handler: string;
   layers: LayerVersion[];
 };
 
@@ -29,7 +29,7 @@ class ApiCrudRouteStack extends NestedStack {
 
   constructor(scope: Construct, id: string, props: ApiCrudRouteStackProps) {
     super(scope, id, props);
-    console.log(props)
+
     const api = RestApi.fromRestApiAttributes(this, 'rest-api', {
       restApiId: props.restApiId,
       rootResourceId: props.rootResourceId,
@@ -42,7 +42,7 @@ class ApiCrudRouteStack extends NestedStack {
     const lambda_fn_handler = new aws_lambda.Function(this, `${props.lambdaName}-fn-handler`, {
       functionName: props.lambdaName + LAMBDA_SUFFIX,
       runtime: aws_lambda.Runtime.NODEJS_18_X,
-      handler: HANDLER_FN,
+      handler: props.handler,
       code,
       layers: props.layers
     });

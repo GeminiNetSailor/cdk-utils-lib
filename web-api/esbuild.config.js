@@ -16,7 +16,7 @@ module.exports = function build(loc) {
 
   const source_dir = path.join(loc, 'src');
 
-  const pkg = require("./package.json");
+  const pkg = require(path.join(loc, "./package.json"));
   const base_external = [
     ...Object.keys(pkg.devDependencies || {}),
     ...Object.keys(pkg.dependencies || {}),
@@ -26,7 +26,12 @@ module.exports = function build(loc) {
   console.log(`Shared/External Dependencies (that are not going to be included on the budle) 🍲 \n`);
   console.table(base_external.map(e => ({ 'External Deps 🍲': e })));
 
-  const LAYERS = ['common'];
+  const LAYERS = fs.readdirSync(source_dir, { withFileTypes: true })
+    .filter(entry => entry.isDirectory())
+    .filter(entry => entry.name.includes('layer'))
+    .map((entry) => entry.name);
+
+  console.log(LAYERS)
 
   const fileName = path.join(loc, 'cdk.json');
 
@@ -35,8 +40,9 @@ module.exports = function build(loc) {
     var entryPoints = [];
 
     // BUILD COMMON LAYER
-    const layer_name = LAYERS[0];
-    const common_dir = path.join(source_dir, layer_name);
+    const layer_name = LAYERS[0].split('.').slice(0, -1).toString();
+
+    const common_dir = path.join(source_dir, LAYERS[0]);
 
     entryPoints = await Promise.all(await fs
       .readdirSync(common_dir, { withFileTypes: true })
@@ -75,13 +81,12 @@ module.exports = function build(loc) {
   })();
 
   (async () => {
-
-    var entryPoints = [];
-
     // BUILD LAMBDAS
-    const functions_dir = path.join(source_dir, 'routes');
-    entryPoints = fs.readdirSync(functions_dir)
-      .map((entry) => `${functions_dir}/${entry}/main.ts`);
+
+    var entryPoints = fs.readdirSync(source_dir, { withFileTypes: true })
+      .filter(entry => entry.isDirectory())
+      .filter(entry => entry.name.includes('module'))
+      .map((entry) => path.join(source_dir, `/${entry.name}/handlers.ts`));
 
     // LOGS
     console.log(`EntryPoints for Lambdas 🪓 \n`);
@@ -89,53 +94,21 @@ module.exports = function build(loc) {
 
     await esbuild.build({
       entryPoints: entryPoints,
-      // entryPoints: await glob("./src/**/*.ts"),
       outdir: 'dist',
       outbase: source_dir,
       bundle: true,
       platform: 'node',
       sourcemap: 'inline',
       minify: true,
-      // tsconfig:'build-tsconfig.json',
       alias: {
         '@CommonLayer': '/opt/nodejs/common',
       },
-      // watch: process.argv.includes('--watch'),
-      plugins: [
-        copy({
-          // this is equal to process.cwd(), which means we use cwd path as base path to resolve `to` path
-          // if not specified, this plugin uses ESBuild.build outdir/outfile options as base path.
-          resolveFrom: 'cwd',
-          assets: [
-            // {
-            //   from: ['./node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node'],
-            //   to: [`./`],
-            //   keepStructure: false,
-            // },
-            // {
-            //   from: ['./prisma/schema.prisma'],
-            //   to: [`./`],
-            //   keepStructure: false,
-            // }
-          ],
-        }),
-      ],
       external: [
         ...base_external,
-        './src/common/*',
+        './src/common.layer/*', // TODO: AUTO ADD LAYERS
         '/opt/nodejs/common/*'
       ],
     }).catch(() => process.exit(1));
-
-    const file = require(fileName);
-    var routes = await getRelativeDirs('routes');
-    file.context.routes = routes;
-
-    fs.writeFile(fileName, JSON.stringify(file, null, 2), function writeJSON(err) {
-      if (err) return console.log(err);
-      console.log(JSON.stringify(file));
-      console.log('writing to ' + fileName);
-    });
   })();
 
   async function getRelativeDirs(id) {

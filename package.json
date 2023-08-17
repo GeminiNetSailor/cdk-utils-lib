@@ -12,8 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^20.4.10",
-    "aws-cdk-lib": "^2.91.0",
+    "@types/node": "^20.5.0",
+    "aws-cdk-lib": "^2.92.0",
     "constructs": "^10.2.69"
   }
 }
