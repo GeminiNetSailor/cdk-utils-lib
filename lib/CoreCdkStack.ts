@@ -59,7 +59,9 @@ export class CoreCdkStack extends cdk.Stack {
           'AppRepository',
           repoName
         );
-        return cdk.pipelines.CodePipelineSource.codeCommit(codecommitRepo, branch);
+        return cdk.pipelines.CodePipelineSource.codeCommit(codecommitRepo, branch, {
+          codeBuildCloneOutput: true
+        });
       default:
         throw new Error("Unknow or unhandled provider, unabled to get repository");
     };
