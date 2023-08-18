@@ -8,7 +8,7 @@ interface CoreAwsServicesStackProps extends CdkCICDStackProps { }
 
 export class CoreAwsServicesStack extends CdkCICDStack {
   constructor(scope: Construct, id: string, props: CoreAwsServicesStackProps) {
-    super(scope, id, props);
+    super(scope, `${id}-core-services`, props);
 
     console.log(process.env.CODEBUILD_SOURCE_VERSION);
 
