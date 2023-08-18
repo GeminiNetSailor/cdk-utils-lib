@@ -16,6 +16,8 @@ export interface CdkCICDStackProps extends cdk.StackProps {
   repository_name: string;
 }
 
+// ID -> EXAMPLES [access-checkout]-[core-services-dev]-cdk-stack
+
 export class CdkCICDStack extends cdk.Stack {
   pipeline: cdk.pipelines.CodePipeline;
   constructor(scope: Construct, id: string, props: CdkCICDStackProps) {
