@@ -25,8 +25,8 @@ export class CdkCICDStack extends cdk.Stack {
   }
 
   getPipeline(id: string, branch: string, props: CdkCICDStackProps): cdk.pipelines.CodePipeline {
-
     var pipelineNameId = `${id}-${branch}-pipeline`;
+    console.log(id)
     return new cdk.pipelines.CodePipeline(this, pipelineNameId, {
       pipelineName: pipelineNameId,
       synth: new cdk.pipelines.CodeBuildStep('SynthStep', {
