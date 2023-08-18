@@ -19,10 +19,14 @@ export interface CdkCICDStackProps extends cdk.StackProps {
 export class CdkCICDStack extends cdk.Stack {
   pipeline: cdk.pipelines.CodePipeline;
   constructor(scope: Construct, id: string, props: CdkCICDStackProps) {
-    super(scope, `${id}-${props.branch}-cdk-stack`, props);
+    super(scope, `${id}-${props.branch}-core-services-cdk-stack`, props);
+    this.pipeline = this.getPipeline(id, props.branch, props);
+  }
 
-    var pipelineNameId = `${id}-${props.branch}-pipeline`;
-    this.pipeline = new cdk.pipelines.CodePipeline(this, pipelineNameId, {
+  getPipeline(id: string, branch: string, props: CdkCICDStackProps): cdk.pipelines.CodePipeline {
+
+    var pipelineNameId = `${id}-${branch}-pipeline`;
+    return new cdk.pipelines.CodePipeline(this, pipelineNameId, {
       pipelineName: pipelineNameId,
       synth: new cdk.pipelines.CodeBuildStep('SynthStep', {
         env: {
@@ -43,8 +47,7 @@ export class CdkCICDStack extends cdk.Stack {
         ]
       })
     });
-
-  }
+  };
 
   private getInput(provider: TRepositoryProvider, repoName: string, branch: string): cdk.pipelines.CodePipelineSource {
     switch (provider) {
