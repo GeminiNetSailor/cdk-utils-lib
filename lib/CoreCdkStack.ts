@@ -9,6 +9,6 @@ interface CoreCdkStackProps extends CdkCICDStackProps { }
 export class CoreCdkStack extends CdkCICDStack {
   constructor(scope: Construct, id: string, props: CoreCdkStackProps) {
     super(scope, `${id}-web-api`, props);
-    this.pipeline.addStage(new RestApiStage(this, id, { branch: props.branch }));
+    this.pipeline.addStage(new RestApiStage(this, `${id}-web-api`, { id: props.id, branch: props.branch }));
   }
 }

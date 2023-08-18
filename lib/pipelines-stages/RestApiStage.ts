@@ -11,13 +11,14 @@ const APP_BRANCHES = {
 };
 
 interface PipelineAppDevProps extends cdk.StageProps {
+  id: string;
   branch: string;
 }
 
 export class RestApiStage extends cdk.Stage {
 
   constructor(scope: Construct, id: string, props: PipelineAppDevProps) {
-    super(scope, `${id}-cdk-stack-stage`, props);
+    super(scope, `${id}-cdk-stack-STAGE`, props);
 
     // const apiGatewayStack = new ApiGatewayStack(this, id, {
     //   branch: props.branch,
@@ -26,8 +27,8 @@ export class RestApiStage extends cdk.Stage {
 
     // Using only prod with the prod app, everything else is going to be using dev enviroment
     var app_id = (props.branch === 'main')
-      ? id + '-' + APP_BRANCHES.PRODUCTION
-      : id + '-' + APP_BRANCHES.DEVELOPMENT
+      ? props.id + '-' + APP_BRANCHES.PRODUCTION
+      : props.id + '-' + APP_BRANCHES.DEVELOPMENT;
 
     const apiGatewayLambdaProviderStack = new ApiGatewayHadlingCdkStack(this,
       id,

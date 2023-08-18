@@ -1,7 +1,7 @@
 import { NestedStack, NestedStackProps } from "aws-cdk-lib";
 import { Deployment, Method, RestApi, Stage } from "aws-cdk-lib/aws-apigateway";
 import { Construct } from "constructs";
-const ENV = 'dev';
+
 interface DeployStackProps extends NestedStackProps {
   readonly restApiId: string;
   readonly branch: string;
@@ -10,7 +10,7 @@ interface DeployStackProps extends NestedStackProps {
 
 class DeployStack extends NestedStack {
   constructor(scope: Construct, id: string, props: DeployStackProps) {
-    super(scope, `${id}-integ-restapi-import-DeployStack`, props);
+    super(scope, `deploy-stack`, props);
 
     const deployment = new Deployment(this, 'deploymentID', {
       api: RestApi.fromRestApiId(this, 'rest-api', props.restApiId),
@@ -21,9 +21,7 @@ class DeployStack extends NestedStack {
         deployment.node.addDependency(method);
       }
     }
-
     new Stage(this, props.branch, { deployment, stageName: props.branch });
-
   }
 }
 
