@@ -20,7 +20,6 @@ export class CdkCICDStack extends cdk.Stack {
   pipeline: cdk.pipelines.CodePipeline;
   constructor(scope: Construct, id: string, props: CdkCICDStackProps) {
     super(scope, `${id}-${props.branch}-cdk-stack`, props);
-    this.pipeline = this.getPipeline(id, props.branch, props);
   }
 
   getPipeline(id: string, branch: string, props: CdkCICDStackProps): cdk.pipelines.CodePipeline {

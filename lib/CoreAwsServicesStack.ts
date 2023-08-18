@@ -10,8 +10,7 @@ export class CoreAwsServicesStack extends CdkCICDStack {
   constructor(scope: Construct, id: string, props: CoreAwsServicesStackProps) {
     super(scope, `${id}-core-services`, props);
 
-    console.log(process.env.CODEBUILD_SOURCE_VERSION);
-
+    this.pipeline = this.getPipeline(id, props.branch, props);
     this.pipeline.addStage(new AppPipeline(this, `${id}-${props.branch}`, { branch: props.branch }));
   };
 
