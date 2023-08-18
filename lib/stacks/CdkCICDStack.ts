@@ -11,6 +11,7 @@ export const REPOSITORIES_PROVIDERS = [
 export type TRepositoryProvider = typeof REPOSITORIES_PROVIDERS[number];
 
 export interface CdkCICDStackProps extends cdk.StackProps {
+  id: string;
   branch: string;
   repository_provider: TRepositoryProvider;
   repository_name: string;
@@ -22,16 +23,17 @@ export class CdkCICDStack extends cdk.Stack {
   pipeline: cdk.pipelines.CodePipeline;
   constructor(scope: Construct, id: string, props: CdkCICDStackProps) {
     super(scope, `${id}-${props.branch}-cdk-stack`, props);
+
+    this.pipeline = this.getPipeline(`${id}-${props.branch}`, props);
   }
 
-  getPipeline(id: string, branch: string, props: CdkCICDStackProps): cdk.pipelines.CodePipeline {
-    var pipelineNameId = `${id}-${branch}-pipeline`;
-    console.log(id)
+  getPipeline(id: string, props: CdkCICDStackProps): cdk.pipelines.CodePipeline {
+    var pipelineNameId = `${id}-pipeline`;
     return new cdk.pipelines.CodePipeline(this, pipelineNameId, {
       pipelineName: pipelineNameId,
       synth: new cdk.pipelines.CodeBuildStep('SynthStep', {
         env: {
-          ID: id,
+          ID: props.id,
           CDKAPP_REPOSITORY_PROVIDER: props.repository_provider,
           CDKAPP_REPOSITORY_NAME: props.repository_name,
           BRANCH: props.branch
