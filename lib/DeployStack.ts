@@ -20,7 +20,8 @@ class DeployStack extends NestedStack {
       for (const method of props.methods) {
         deployment.node.addDependency(method);
       }
-    }
+    };
+
     new Stage(this, props.branch, { deployment, stageName: props.branch });
   }
 }
