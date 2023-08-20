@@ -10,7 +10,7 @@ interface DeployStackProps extends NestedStackProps {
 
 class DeployStack extends NestedStack {
   constructor(scope: Construct, id: string, props: DeployStackProps) {
-    super(scope, `deploy-stack`, props);
+    super(scope, `deploy-stack-${props.branch}`, props);
 
     const deployment = new Deployment(this, 'deploymentID', {
       api: RestApi.fromRestApiId(this, 'rest-api', props.restApiId),
