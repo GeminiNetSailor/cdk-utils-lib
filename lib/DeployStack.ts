@@ -12,7 +12,7 @@ class DeployStack extends NestedStack {
   constructor(scope: Construct, id: string, props: DeployStackProps) {
     super(scope, `deploy-stack-${props.branch}`, props);
 
-    const deployment = new Deployment(this, 'deploymentID', {
+    const deployment = new Deployment(this, 'deployment' + props.branch, {
       api: RestApi.fromRestApiId(this, 'rest-api', props.restApiId),
     });
 
