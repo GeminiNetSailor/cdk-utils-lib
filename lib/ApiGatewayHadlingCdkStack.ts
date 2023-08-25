@@ -67,7 +67,8 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
     var methods: cdk.aws_apigateway.Method[] = [];
 
     apiConfig.forEach(a => {
-      var route = api.root.addResource(a.module.name);
+      var rsc = api.root.getResource(a.module.name);
+      var route = (rsc === undefined) ? api.root.addResource(a.module.name) : rsc;
       var code = cdk.aws_lambda.Code.fromAsset(path.join(process.cwd(), 'dist', a.module.path));
 
       const lambda_fn_handler = new cdk.aws_lambda.Function(this, `${id}-${a.module.name}-fn-handler`, {
