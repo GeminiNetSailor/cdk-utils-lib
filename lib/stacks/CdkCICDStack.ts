@@ -22,7 +22,7 @@ export interface CdkCICDStackProps extends cdk.StackProps {
 export class CdkCICDStack extends cdk.Stack {
   pipeline: cdk.pipelines.CodePipeline;
   constructor(scope: Construct, id: string, props: CdkCICDStackProps) {
-    super(scope, `${id}-${props.branch}-cdk-stack`, props);
+    super(scope, id + '-cdk-stack', props);
 
     this.pipeline = this.getPipeline(`${id}-${props.branch}`, props);
   }
