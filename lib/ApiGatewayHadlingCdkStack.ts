@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
-
+import { Deployment, Method, RestApi, Stage } from "aws-cdk-lib/aws-apigateway";
 // Nested Stacks
 import DeployStack from "./DeployStack";
 import ApiCrudRouteStack from './ApiRouteStack';
@@ -12,6 +12,7 @@ interface RestAPIRootStackProps extends cdk.StackProps {
 }
 
 // TODO: SEPARATE LAYERS INTO HIS HOWN STACK
+const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 
 class ApiGatewayHadlingCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: RestAPIRootStackProps) {
@@ -31,7 +32,7 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
     // if (!parsedGatewayConfig.stages.includes(props.branch)) 
 
 
-      new cdk.CfnOutput(this, 'Using existing Api Gateway', { value: JSON.stringify(parsedGatewayConfig) });
+    new cdk.CfnOutput(this, 'Using existing Api Gateway', { value: JSON.stringify(parsedGatewayConfig) });
 
     var apiGatewayIds: { restApiId: string, rootResourceId: string } = {
       restApiId: parsedGatewayConfig.apiGatewayRestApiId,
@@ -41,7 +42,7 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
     // ===================================
     // API Gateway
     // ===================================
-    const restApi = cdk.aws_apigateway.RestApi.fromRestApiAttributes(this, `${id}-restapi`, {
+    const api = cdk.aws_apigateway.RestApi.fromRestApiAttributes(this, `${id}-restapi`, {
       ...apiGatewayIds
     });
 
@@ -66,26 +67,40 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
     var methods: cdk.aws_apigateway.Method[] = [];
 
     apiConfig.forEach(a => {
-      methods.push(...new ApiCrudRouteStack(this, `restapi-${a.module.name}`, {
-        restApiId: restApi.restApiId,
-        rootResourceId: restApi.restApiRootResourceId,
-        lambdaName: a.module.name,
+      var route = api.root.addResource(a.module.name);
+      var code = cdk.aws_lambda.Code.fromAsset(path.join(process.cwd(), 'dist', a.module.path));
+
+      const lambda_fn_handler = new cdk.aws_lambda.Function(this, `${a.module.name}-fn-handler`, {
+        functionName: a.module.name + "-fnHandler",
+        runtime: cdk.aws_lambda.Runtime.NODEJS_18_X,
         handler: a.handlerName,
-        lambdaCodeDir: path.join(process.cwd(), 'dist', a.module.path),
+        code,
         layers
-      }).methods);
+      });
+
+      METHODS.forEach(method_type => {
+        const api_gateway_method = route.addMethod(method_type,
+          new cdk.aws_apigateway.LambdaIntegration(lambda_fn_handler, { proxy: true })
+        );
+
+        methods.push(api_gateway_method);
+      });
     });
 
     // ===================================
     // Deployments
     // ===================================
-    // stages.forEach((stage: string) => {
-      new DeployStack(this, id, {
-        stage: props.branch,
-        restApiId: restApi.restApiId,
-        methods,
-      });
-    // })
+    const deployment = new Deployment(this, 'deployment' + new Date().toISOString(), {
+      api,
+    });
+
+    if (methods) {
+      for (const method of methods) {
+        deployment.node.addDependency(method);
+      }
+    };
+
+    new Stage(this, id + props.branch, { deployment, stageName: props.branch });
 
     // ===================================
     // Outputs
@@ -95,7 +110,7 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, 'URL', {
-      value: `https://${restApi.restApiId}.execute-api.${this.region}.amazonaws.com/prod/`,
+      value: `https://${api.restApiId}.execute-api.${this.region}.amazonaws.com/prod/`,
     });
 
   }
