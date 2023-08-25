@@ -18,7 +18,7 @@ interface PipelineAppDevProps extends cdk.StageProps {
 export class RestApiStage extends cdk.Stage {
 
   constructor(scope: Construct, id: string, props: PipelineAppDevProps) {
-    super(scope, `${id}-cdk-stack-STAGE`, props);
+    super(scope, id, props);
 
     // const apiGatewayStack = new ApiGatewayStack(this, id, {
     //   branch: props.branch,
@@ -31,7 +31,7 @@ export class RestApiStage extends cdk.Stage {
       : props.id + '-' + APP_BRANCHES.DEVELOPMENT;
 
     const apiGatewayLambdaProviderStack = new ApiGatewayHadlingCdkStack(this,
-      id,
+      `${props.id}-${props.branch}-api-gateway-handing-cdk-stack`,
       {
         env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
         apiGatewaParameter: `/${app_id}/${API_GATEWAY_KEY}`,

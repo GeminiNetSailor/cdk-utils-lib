@@ -16,7 +16,7 @@ const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 
 class ApiGatewayHadlingCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: RestAPIRootStackProps) {
-    super(scope, `${id}-api-gateway-handing-cdk-stack`, props);
+    super(scope, id, props);
 
     const existingApiGatewayConfig = cdk.aws_ssm.StringParameter.valueFromLookup(this, props.apiGatewaParameter);
     if (existingApiGatewayConfig.includes('dummy-value-for-') || existingApiGatewayConfig === '') return;
@@ -51,15 +51,15 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
     // ===================================
     var layers: cdk.aws_lambda.LayerVersion[] = [];
 
-    // layersConfig.forEach(layer => {
-    //   layers.push(new cdk.aws_lambda.LayerVersion(this, `${layer.name}-layer`, {
-    //     compatibleRuntimes: [
-    //       cdk.aws_lambda.Runtime.NODEJS_16_X,
-    //       cdk.aws_lambda.Runtime.NODEJS_18_X
-    //     ],
-    //     code: cdk.aws_lambda.Code.fromAsset(path.join(process.cwd(), 'dist/layers', layer.path)),
-    //   }));
-    // });
+    layersConfig.forEach(layer => {
+      layers.push(new cdk.aws_lambda.LayerVersion(this, `${id}-${layer.name}-layer`, {
+        compatibleRuntimes: [
+          cdk.aws_lambda.Runtime.NODEJS_16_X,
+          cdk.aws_lambda.Runtime.NODEJS_18_X
+        ],
+        code: cdk.aws_lambda.Code.fromAsset(path.join(process.cwd(), 'dist/layers', layer.path)),
+      }));
+    });
 
     // ===================================
     // API REST ROUTES + Lambda Functions
@@ -70,7 +70,7 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
       var route = api.root.addResource(a.module.name);
       var code = cdk.aws_lambda.Code.fromAsset(path.join(process.cwd(), 'dist', a.module.path));
 
-      const lambda_fn_handler = new cdk.aws_lambda.Function(this, `${a.module.name}-fn-handler`, {
+      const lambda_fn_handler = new cdk.aws_lambda.Function(this, `${id}-${a.module.name}-fn-handler`, {
         functionName: a.module.name + "-fnHandler",
         runtime: cdk.aws_lambda.Runtime.NODEJS_18_X,
         handler: a.handlerName,
@@ -90,7 +90,7 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
     // ===================================
     // Deployments
     // ===================================
-    const deployment = new Deployment(this, 'deployment' + new Date().toISOString(), {
+    const deployment = new Deployment(this, `${id}-deployment` + new Date().toISOString(), {
       api,
     });
 
