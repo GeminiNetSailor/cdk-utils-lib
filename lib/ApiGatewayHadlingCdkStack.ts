@@ -16,7 +16,7 @@ const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 
 class ApiGatewayHadlingCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: RestAPIRootStackProps) {
-    super(scope, `${id}-api-gateway-handing-cdk-stack`, props);
+    super(scope, `${id}-${props.branch}-api-gateway-handing-cdk-stack`, props);
 
     const existingApiGatewayConfig = cdk.aws_ssm.StringParameter.valueFromLookup(this, props.apiGatewaParameter);
     if (existingApiGatewayConfig.includes('dummy-value-for-') || existingApiGatewayConfig === '') return;
