@@ -31,7 +31,7 @@ export class RestApiStage extends cdk.Stage {
       : props.id + '-' + APP_BRANCHES.DEVELOPMENT;
 
     const apiGatewayLambdaProviderStack = new ApiGatewayHadlingCdkStack(this,
-      `${props.id}-${props.branch}-api-gateway-handing-cdk-stack`,
+      `${props.id}-api-gateway-handing-${props.branch}-cdk-stack`,
       {
         env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
         apiGatewaParameter: `/${app_id}/${API_GATEWAY_KEY}`,
