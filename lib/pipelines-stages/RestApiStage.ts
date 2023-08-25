@@ -3,9 +3,9 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from "constructs";
 import ApiGatewayHadlingCdkStack from '../ApiGatewayHadlingCdkStack';
 
-const API_GATEWAY_KEY = 'ApiGateway';
+export const API_GATEWAY_KEY = 'ApiGateway';
 
-const APP_BRANCHES = {
+export const APP_BRANCHES = {
   PRODUCTION: 'main',
   DEVELOPMENT: 'dev'
 };
