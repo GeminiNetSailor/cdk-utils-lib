@@ -24,10 +24,14 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
     var apiConfig: { urlPath: string, handlerName: string, module: { name: string, path: string } }[] = scope.node.tryGetContext('api');
 
     var parsedGatewayConfig:
-      { apiGatewayRestApiId: string; apiGatewayRootResourceId: string; }
+      { apiGatewayRestApiId: string; apiGatewayRootResourceId: string; stages?: string[] }
       = JSON.parse(existingApiGatewayConfig);
 
-    new cdk.CfnOutput(this, 'Using existing Api Gateway', { value: JSON.stringify(parsedGatewayConfig) });
+    if (parsedGatewayConfig.stages === undefined) parsedGatewayConfig.stages = [props.branch]
+    // if (!parsedGatewayConfig.stages.includes(props.branch)) 
+
+
+      new cdk.CfnOutput(this, 'Using existing Api Gateway', { value: JSON.stringify(parsedGatewayConfig) });
 
     var apiGatewayIds: { restApiId: string, rootResourceId: string } = {
       restApiId: parsedGatewayConfig.apiGatewayRestApiId,
@@ -46,15 +50,15 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
     // ===================================
     var layers: cdk.aws_lambda.LayerVersion[] = [];
 
-    layersConfig.forEach(layer => {
-      layers.push(new cdk.aws_lambda.LayerVersion(this, `${layer.name}-layer`, {
-        compatibleRuntimes: [
-          cdk.aws_lambda.Runtime.NODEJS_16_X,
-          cdk.aws_lambda.Runtime.NODEJS_18_X
-        ],
-        code: cdk.aws_lambda.Code.fromAsset(path.join(process.cwd(), 'dist/layers', layer.path)),
-      }));
-    });
+    // layersConfig.forEach(layer => {
+    //   layers.push(new cdk.aws_lambda.LayerVersion(this, `${layer.name}-layer`, {
+    //     compatibleRuntimes: [
+    //       cdk.aws_lambda.Runtime.NODEJS_16_X,
+    //       cdk.aws_lambda.Runtime.NODEJS_18_X
+    //     ],
+    //     code: cdk.aws_lambda.Code.fromAsset(path.join(process.cwd(), 'dist/layers', layer.path)),
+    //   }));
+    // });
 
     // ===================================
     // API REST ROUTES + Lambda Functions
@@ -75,11 +79,13 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
     // ===================================
     // Deployments
     // ===================================
-    new DeployStack(this, `${id}-api-gateway-handing-cdk-stack`, {
-      branch: props.branch,
-      restApiId: restApi.restApiId,
-      methods,
-    });
+    // stages.forEach((stage: string) => {
+      new DeployStack(this, `${id}-api-gateway-handing-cdk-stack`, {
+        stage: props.branch,
+        restApiId: restApi.restApiId,
+        methods,
+      });
+    // })
 
     // ===================================
     // Outputs

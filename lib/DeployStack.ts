@@ -4,15 +4,15 @@ import { Construct } from "constructs";
 
 interface DeployStackProps extends NestedStackProps {
   readonly restApiId: string;
-  readonly branch: string;
+  readonly stage: string;
   readonly methods?: Method[];
 }
 
 class DeployStack extends NestedStack {
   constructor(scope: Construct, id: string, props: DeployStackProps) {
-    super(scope, `deploy-stack-${props.branch}`, props);
+    super(scope, `deploy-stack-${props.stage}`, props);
 
-    const deployment = new Deployment(this, 'deployment' + props.branch, {
+    const deployment = new Deployment(this, 'deployment' + new Date().toISOString(), {
       api: RestApi.fromRestApiId(this, 'rest-api', props.restApiId),
     });
 
@@ -22,7 +22,7 @@ class DeployStack extends NestedStack {
       }
     };
 
-    new Stage(this, props.branch, { deployment, stageName: props.branch });
+    new Stage(this, props.stage, { deployment, stageName: props.stage });
   }
 }
 
