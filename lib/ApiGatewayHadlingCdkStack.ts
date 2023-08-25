@@ -80,7 +80,7 @@ class ApiGatewayHadlingCdkStack extends cdk.Stack {
     // Deployments
     // ===================================
     // stages.forEach((stage: string) => {
-      new DeployStack(this, `${id}-api-gateway-handing-cdk-stack`, {
+      new DeployStack(this, id, {
         stage: props.branch,
         restApiId: restApi.restApiId,
         methods,
